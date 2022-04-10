@@ -82,18 +82,22 @@ export class SearchUser extends Component {
 		const handlesArray = this.state.handlesList
 			.filter((value) => value.realName != "")
 			.map((newUser) => (
-				<div
-					className="dash--user--searched"
-					key={newUser.username}
-					onClick={(event) =>
-						this.props.handleClick(
-							event,
-							newUser.username,
-							newUser.userID
+				<div>
+					<div
+						className="dash--user--searched"
+						key={newUser.username}
+						onClick={(event) =>
+							this.props.handleClick(
+								event,
+								newUser.username,
+								newUser.userID
+							)
+						}
+					>
+						{newUser.realName} (<strong>@{newUser.username}</strong>
 						)
-					}
-				>
-					{newUser.realName} (@{newUser.username})
+					</div>
+					<hr />
 				</div>
 			))
 		return (
@@ -107,14 +111,19 @@ export class SearchUser extends Component {
 						value={this.state.userInput}
 						onChange={(event) => this.handleChange(event)}
 					></Form.Control>
-					<Button variant="primary" type="submit">
+					<Button
+						variant="outline-dark"
+						type="submit"
+						className="mt-2"
+						size="sm"
+					>
 						Search User
 					</Button>
 				</Form>
-				<br></br>
-				<br></br>
-				<br></br>
-				<div>{this.state.handlesList.length > 1 && handlesArray}</div>
+				<div>
+					{this.state.handlesList.length > 1 && <hr />}
+					{this.state.handlesList.length > 1 && handlesArray}
+				</div>
 			</>
 		)
 	}

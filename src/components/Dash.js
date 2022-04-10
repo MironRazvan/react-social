@@ -1,18 +1,17 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { useNavigate, useLocation } from "react-router-dom"
-import { auth, db, logout } from "../firebase/firebase"
-import { Card, Form, Button } from "react-bootstrap"
+import { auth, db } from "../firebase/firebase"
 import { doc, collection, getDoc, addDoc } from "firebase/firestore"
 import Header from "./Header"
 import Post from "./Post"
 import Footer from "./Footer"
 import SearchUser from "./SearchUser"
+import PostMessage from "./PostMessage"
 
 export default function Dash(props) {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const newMessage = useRef()
 	const [userUID, setUserUID] = useState(location.state.currentUser)
 	const [userHandle, setUserHandle] = useState(location.state.userHandle)
 	const [user] = useAuthState(auth)
@@ -25,28 +24,32 @@ export default function Dash(props) {
 		navigate("/userpage", { state: { username: username, userID: userID } })
 	}
 
-	async function handleNewMessage(event) {
+	async function handleNewMessage(event, message) {
 		event.preventDefault()
-		console.log(`new message: ${newMessage.current.value}`)
+		console.log(`primit in dash din postmessage: ${message}`)
 		await addDoc(collection(db, "user_posts"), {
-			body: `${newMessage.current.value}`,
+			body: `${message}`,
 			time: new Date(),
 			userID: `${user.uid}`,
 		})
+		setUpdater((prevState) => !prevState)
+	}
+
+	async function fetchUserData(userID) {
+		const docRef = doc(db, `user_info/${userID}`)
+		const docSnap = await getDoc(docRef)
+		return docSnap.data()
 	}
 
 	useEffect(() => {
 		if (!user) navigate("/login")
+
 		// fetches user info from db
-		const docRef = doc(db, `user_info/${userUID}`)
-		const fetchUserInfo = async () => {
-			const docSnap = await getDoc(docRef)
-			const userInfo = docSnap.data()
-			setUserData(userInfo)
-		}
-		fetchUserInfo().catch((e) => {
-			console.log(e)
-		})
+		fetchUserData(userUID)
+			.then((result) => setUserData(result))
+			.catch((e) => {
+				console.log(e)
+			})
 		return () => {
 			setUserData({})
 		}
@@ -57,24 +60,8 @@ export default function Dash(props) {
 			{user ? (
 				<>
 					<Header />
-					<Card className="dash--posts mb-4 w-100 align-items-center">
-						<Card.Body>
-							<Form
-								className="d-flex"
-								onSubmit={handleNewMessage}
-							>
-								<Form.Group className="d-flex">
-									<Form.Label>New Message</Form.Label>
-									<Form.Control
-										type="text"
-										placeholder="New Message"
-										ref={newMessage}
-									/>
-								</Form.Group>
-								<Button type="submit">Post New Message</Button>
-							</Form>
-						</Card.Body>
-					</Card>
+					<PostMessage handleClick={handleNewMessage} />
+					<hr />
 					<div className="dash--styling">
 						<Post user={user.uid} forSelf={false} />
 						<div className="dash--search">
