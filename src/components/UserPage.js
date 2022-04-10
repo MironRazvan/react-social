@@ -40,7 +40,6 @@ function UserPage(props) {
 		return false
 	}
 
-	// TODO add user to followed list
 	async function followUser(userID, followState) {
 		const followersRef = doc(db, "user_info", `${user.uid}`)
 

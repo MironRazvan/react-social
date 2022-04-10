@@ -30,14 +30,8 @@ export default function Login() {
 
 	useEffect(() => {
 		if (loading) return
-
-		// if current user is set, then get current user handle
-		// with userHandle being a dependency of the useEffect hook, this will cause a page re-render
 		if (user) getCurrentUserHandle(user.uid)
 
-		// if both user and userHandle are set then navigate to dashboard and pass these values
-		// console.log("uid din login", user.uid)
-		// console.log("userhandle din login", userHandle)
 		if (user && userHandle) {
 			navigate("/", {
 				state: {
@@ -45,6 +39,9 @@ export default function Login() {
 					userHandle: `${userHandle}`,
 				},
 			})
+		}
+		return () => {
+			setUserHandle("")
 		}
 	}, [user, loading, userHandle])
 
