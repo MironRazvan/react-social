@@ -5,7 +5,16 @@ import Header from "./Header"
 import Footer from "./Footer"
 import Post from "./Post"
 import { useNavigate, useLocation } from "react-router-dom"
-import { collection, query, where, getDocs } from "firebase/firestore"
+import {
+	collection,
+	query,
+	where,
+	getDocs,
+	doc,
+	updateDoc,
+	arrayUnion,
+	arrayRemove,
+} from "firebase/firestore"
 import { Button } from "react-bootstrap"
 
 function UserPage(props) {
@@ -15,6 +24,7 @@ function UserPage(props) {
 	const userHandle = useState(location.state.username)
 	const userID = useState(location.state.userID)
 	const [check, setCheck] = useState(true)
+	const [updater, setUpdater] = useState(true)
 
 	// checks if user can be followed, also if current user is user
 	async function canBeFollowed() {
@@ -31,12 +41,27 @@ function UserPage(props) {
 	}
 
 	// TODO add user to followed list
+	async function followUser(userID, followState) {
+		const followersRef = doc(db, "user_info", `${user.uid}`)
+
+		if (followState) {
+			// adds a new follower
+			await updateDoc(followersRef, {
+				follows: arrayUnion(`${userID[0]}`),
+			})
+		} else {
+			// removes follower
+			await updateDoc(followersRef, {
+				follows: arrayRemove(`${userID[0]}`),
+			})
+		}
+		setUpdater((prevState) => !prevState)
+	}
 
 	useEffect(() => {
 		if (!user || !props) navigate("/login")
 		canBeFollowed().then((result) => setCheck(result))
-		// console.log(canBeFollowed)
-	}, [])
+	}, [updater])
 
 	return (
 		<>
@@ -47,7 +72,10 @@ function UserPage(props) {
 						{userHandle} at user id: {userID}
 					</div>
 					{user.uid != userID[0] && (
-						<Button variant={check ? "primary" : "danger"}>
+						<Button
+							variant={check ? "primary" : "danger"}
+							onClick={() => followUser(userID, check)}
+						>
 							{check ? "Follow" : "Unfollow"}
 						</Button>
 					)}
